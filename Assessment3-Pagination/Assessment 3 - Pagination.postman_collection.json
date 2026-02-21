@@ -1,0 +1,335 @@
+{
+  "info": {
+    "_postman_id": "cca7bedb-c12e-40d7-8447-b0c2777738ae",
+    "name": "Assessment 3 - Pagination",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50833338",
+    "_collection_link": "https://go.postman.co/collection/50833338-cca7bedb-c12e-40d7-8447-b0c2777738ae?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Products Page 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify items exists and is an array\r",
+              "pm.test(\"Items is an array\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.items).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "// Verify items length does not exceed the limit\r",
+              "pm.test(\"Items length is less than or equal to limit\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    const limit = parseInt(pm.collectionVariables.get(\"limit\"));\r",
+              "    pm.expect(jsonData.items.length).to.be.at.most(limit);\r",
+              "});\r",
+              "// Why at.most(limit)? Last page may have fewer items than limit\r",
+              "// e.g. total=45, limit=10 → last page has only 5 items\r",
+              "\r",
+              "// Verify all products have valid id and price\r",
+              "pm.test(\"All products have valid id and price\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    jsonData.items.forEach(function(product) {\r",
+              "        // id must be a number\r",
+              "        pm.expect(product.id).to.be.a(\"number\");\r",
+              "        // price must be a number\r",
+              "        pm.expect(product.price).to.be.a(\"number\");\r",
+              "        // price must not be negative\r",
+              "        pm.expect(product.price).to.be.at.least(0);\r",
+              "    });\r",
+              "});\r",
+              "// Why forEach? We check every single product, not just the first one\r",
+              "// A bug could exist in only one product, forEach catches all of them\r",
+              "\r",
+              "// Verify pagination fields exist and are correct\r",
+              "pm.test(\"Pagination fields are correct\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.page).to.eql(1);\r",
+              "    pm.expect(jsonData.limit).to.eql(10);\r",
+              "    pm.expect(jsonData.total).to.be.a(\"number\");\r",
+              "    pm.expect(jsonData.total).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "// If total > limit, store flag to request page 2\r",
+              "const jsonData = pm.response.json();\r",
+              "if (jsonData.total > jsonData.limit) {\r",
+              "    pm.collectionVariables.set(\"hasNextPage\", \"true\");\r",
+              "    console.log(\"Total products:\", jsonData.total, \"- Page 2 exists\");\r",
+              "} else {\r",
+              "    pm.collectionVariables.set(\"hasNextPage\", \"false\");\r",
+              "    console.log(\"Total products:\", jsonData.total, \"- No page 2\");\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{urlPag}}/products?page=1&limit=10",
+          "host": [
+            "{{urlPag}}"
+          ],
+          "path": [
+            "products"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Products Page 1",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{urlPag}}/products?page=1&limit=10",
+              "host": [
+                "{{urlPag}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"items\": [\r\n        { \"id\": 1, \"name\": \"Book\", \"price\": 10.99 },\r\n        { \"id\": 2, \"name\": \"Journal\", \"price\": 25.00 },\r\n        { \"id\": 3, \"name\": \"Ticket\", \"price\": 5.50 },\r\n        { \"id\": 4, \"name\": \"Scissors\", \"price\": 99.99 },\r\n        { \"id\": 5, \"name\": \"Cup\", \"price\": 15.00 },\r\n        { \"id\": 6, \"name\": \"Ball\", \"price\": 30.00 },\r\n        { \"id\": 7, \"name\": \"Chair\", \"price\": 45.00 },\r\n        { \"id\": 8, \"name\": \"Shoes\", \"price\": 8.00 },\r\n        { \"id\": 9, \"name\": \"Burger\", \"price\": 12.00 },\r\n        { \"id\": 10, \"name\": \"Wine\", \"price\": 20.00 }\r\n    ],\r\n    \"page\": 1,\r\n    \"limit\": 10,\r\n    \"total\": 45\r\n}"
+        }
+      ]
+    },
+    {
+      "name": "Products Page 2",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Check if page 2 should be requested\r",
+              "// If total was not greater than limit on page 1, skip this request\r",
+              "const hasNextPage = pm.collectionVariables.get(\"hasNextPage\");\r",
+              "\r",
+              "if (hasNextPage === \"false\") {\r",
+              "    console.log(\"No next page exists - skipping page 2 request\");\r",
+              "}\r",
+              "// Note: We cannot truly skip requests in Postman without Newman\r",
+              "// This log helps us understand the flow during manual execution"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify page number increased to 2\r",
+              "pm.test(\"Page number is 2\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.page).to.eql(2);\r",
+              "});\r",
+              "// Why this test? Core requirement of assessment -\r",
+              "// confirms pagination is actually moving forward\r",
+              "\r",
+              "// Verify items is still an array and within limit\r",
+              "pm.test(\"Items is an array and within limit\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    const limit = parseInt(pm.collectionVariables.get(\"limit\"));\r",
+              "    pm.expect(jsonData.items).to.be.an(\"array\");\r",
+              "    pm.expect(jsonData.items.length).to.be.at.most(limit);\r",
+              "});\r",
+              "\r",
+              "// Verify all products on page 2 also have valid id and price\r",
+              "pm.test(\"All products have valid id and price\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    jsonData.items.forEach(function(product) {\r",
+              "        pm.expect(product.id).to.be.a(\"number\");\r",
+              "        pm.expect(product.price).to.be.a(\"number\");\r",
+              "        pm.expect(product.price).to.be.at.least(0);\r",
+              "    });\r",
+              "});\r",
+              "\r",
+              "// Verify total is consistent between pages\r",
+              "pm.test(\"Total is consistent with page 1\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.total).to.eql(45);\r",
+              "});\r",
+              "// Why? total should never change between pages\r",
+              "// If page 1 says total=45 but page 2 says total=50, data inconsistency bug\r",
+              "\r",
+              "// Verify page 2 items are different from page 1\r",
+              "pm.test(\"Page 2 starts from correct item id\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.items[0].id).to.eql(11);\r",
+              "});\r",
+              "// Why? Ensures pagination offset is working correctly\r",
+              "// If page 2 also starts from id=1, pagination is broken"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{urlPag}}/products?page=2&limit=10",
+          "host": [
+            "{{urlPag}}"
+          ],
+          "path": [
+            "products"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "2"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Products Page 2",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlPag}}/products?page=2&limit=10",
+              "host": [
+                "{{urlPag}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"items\": [\r\n        { \"id\": 11, \"name\": \"Apple\", \"price\": 18.00 },\r\n        { \"id\": 12, \"name\": \"Pear\", \"price\": 22.00 },\r\n        { \"id\": 13, \"name\": \"Peach\", \"price\": 7.50 },\r\n        { \"id\": 14, \"name\": \"Playstation\", \"price\": 55.00 },\r\n        { \"id\": 15, \"name\": \"Console\", \"price\": 33.00 },\r\n        { \"id\": 16, \"name\": \"Mouse\", \"price\": 11.00 },\r\n        { \"id\": 17, \"name\": \"Timer\", \"price\": 44.00 },\r\n        { \"id\": 18, \"name\": \"Candy\", \"price\": 9.00 },\r\n        { \"id\": 19, \"name\": \"Sweater\", \"price\": 16.00 },\r\n        { \"id\": 20, \"name\": \"Qarabag\", \"price\": 28.00 }\r\n    ],\r\n    \"page\": 2,\r\n    \"limit\": 10,\r\n    \"total\": 45\r\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "// Skip collection-level tests for requests that expect non-200 status codes\r",
+          "const skippedRequests = [];\r",
+          "\r",
+          "if (!skippedRequests.includes(pm.info.requestName)) {\r",
+          "    \r",
+          "    // Verify response time is within acceptable threshold for all requests\r",
+          "    pm.test(\"Response time is below 1000ms\", function () {\r",
+          "        pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+          "    });\r",
+          "\r",
+          "    // Verify response has a body\r",
+          "    pm.test(\"Response body is not empty\", function () {\r",
+          "        pm.expect(pm.response.text()).to.not.be.empty;\r",
+          "    });\r",
+          "\r",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "current Page",
+      "value": ""
+    },
+    {
+      "key": "limit",
+      "value": ""
+    },
+    {
+      "key": "hasNextPage",
+      "value": ""
+    }
+  ]
+}
