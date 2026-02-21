@@ -1,0 +1,410 @@
+{
+  "info": {
+    "_postman_id": "3cc76ab7-b1b7-4187-99cc-f147e6c4de70",
+    "name": "Assessment 4 - Bug Hunt",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50833338",
+    "_collection_link": "https://go.postman.co/collection/50833338-3cc76ab7-b1b7-4187-99cc-f147e6c4de70?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Bug Reports",
+      "item": [
+        {
+          "name": "BUG 001- Login Status Code",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "/*\r",
+                  "═══════════════════════════════════════════════════════════════\r",
+                  "BUG REPORT - BUG-001\r",
+                  "═══════════════════════════════════════════════════════════════\r",
+                  "\r",
+                  "TITLE: Login Returns 200 for Missing Password Instead of 400\r",
+                  "\r",
+                  "SEVERITY: High\r",
+                  "PRIORITY: High\r",
+                  "\r",
+                  "STEPS TO REPRODUCE:\r",
+                  "1. Send POST /auth/login\r",
+                  "2. Include only email field\r",
+                  "3. Omit password field\r",
+                  "4. Observe response status\r",
+                  "\r",
+                  "EXPECTED RESULT:\r",
+                  "Status: 400 Bad Request\r",
+                  "Body: {\r",
+                  "    \"error\": \"Bad Request\",\r",
+                  "    \"message\": \"Password is required\",\r",
+                  "    \"statusCode\": 400\r",
+                  "}\r",
+                  "\r",
+                  "ACTUAL RESULT:\r",
+                  "Status: 200 OK\r",
+                  "Body: {\r",
+                  "    \"success\": false,\r",
+                  "    \"reason\": \"no password\"\r",
+                  "}\r",
+                  "\r",
+                  "ISSUES FOUND:\r",
+                  "✗ Wrong status code (200 instead of 400)\r",
+                  "✗ Inconsistent error structure (success/reason instead of error/message)\r",
+                  "\r",
+                  "IMPACT:\r",
+                  "- Frontend cannot distinguish between success and validation error\r",
+                  "- User may see success message despite failed login\r",
+                  "- Security concern: improper error handling\r",
+                  "\r",
+                  "ENVIRONMENT:\r",
+                  "- Endpoint: POST /auth/login\r",
+                  "- Date Found: 2024-02-19\r",
+                  "- Tester: QA Team\r",
+                  "\r",
+                  "═══════════════════════════════════════════════════════════════\r",
+                  "*/\r",
+                  "\r",
+                  "console.log(\"\\n\" + \"=\".repeat(70));\r",
+                  "console.log(\"🐛 BUG-001: Login Returns 200 Instead of 400\");\r",
+                  "console.log(\"=\".repeat(70));\r",
+                  "console.log(\"Severity: HIGH | Priority: HIGH\");\r",
+                  "console.log(\"Expected Status: 400 | Watch for: 200 (bug)\");\r",
+                  "console.log(\"=\".repeat(70) + \"\\n\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "console.log(\"📊 TEST RESULTS:\");\r",
+                  "console.log(\"-\".repeat(70));\r",
+                  "\r",
+                  "// Test 1: Status code should be 400\r",
+                  "if (pm.response.code === 400) {\r",
+                  "    console.log(\"✅ Status code is 400 - PASS\");\r",
+                  "    pm.test(\"Status code is 400 - PASS\", function () {\r",
+                  "        pm.expect(pm.response.code).to.equal(400);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    console.log(\"❌ Status code is \" + pm.response.code + \" - EXPECTED 400 - FAIL\");\r",
+                  "    pm.test(\"❌ BUG: Status code should be 400 but returns \" + pm.response.code, function () {\r",
+                  "        pm.expect(pm.response.code).to.equal(400);\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "// Test 2: Error structure should be standard\r",
+                  "const jsonData = pm.response.json();\r",
+                  "const hasStandardFields = jsonData.hasOwnProperty(\"error\") && \r",
+                  "                         jsonData.hasOwnProperty(\"message\") && \r",
+                  "                         jsonData.hasOwnProperty(\"statusCode\");\r",
+                  "\r",
+                  "if (hasStandardFields) {\r",
+                  "    console.log(\"✅ Error structure is standard - PASS\");\r",
+                  "    pm.test(\"Error structure is standard - PASS\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property(\"error\");\r",
+                  "        pm.expect(jsonData).to.have.property(\"message\");\r",
+                  "        pm.expect(jsonData).to.have.property(\"statusCode\");\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    console.log(\"❌ Error structure is non-standard - FAIL\");\r",
+                  "    console.log(\"   Expected fields: error, message, statusCode\");\r",
+                  "    console.log(\"   Actual fields: \" + Object.keys(jsonData).join(\", \"));\r",
+                  "    pm.test(\"❌ BUG: Error structure should have standard fields\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property(\"error\");\r",
+                  "        pm.expect(jsonData).to.have.property(\"message\");\r",
+                  "        pm.expect(jsonData).to.have.property(\"statusCode\");\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "console.log(\"-\".repeat(70));\r",
+                  "console.log(\"📄 ACTUAL RESPONSE:\");\r",
+                  "console.log(JSON.stringify(jsonData, null, 2));\r",
+                  "console.log(\"-\".repeat(70) + \"\\n\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"test@example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Login Missing Password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify correct error status code for missing required field\r",
+              "pm.test(\"Status code is 400 - Bad Request\", function () {\r",
+              "    pm.response.to.have.status(400);\r",
+              "});\r",
+              "// Why 400? Client sent incomplete data - this is client error, not server\r",
+              "\r",
+              "// Verify error response has required fields\r",
+              "pm.test(\"Error response has standard fields\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property(\"error\");\r",
+              "    pm.expect(jsonData).to.have.property(\"message\");\r",
+              "    pm.expect(jsonData).to.have.property(\"statusCode\");\r",
+              "});\r",
+              "// Why? Consistent error structure helps frontend handle errors uniformly\r",
+              "\r",
+              "// Verify error message is meaningful and describes the issue\r",
+              "pm.test(\"Error message mentions password\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.message.toLowerCase()).to.include(\"password\");\r",
+              "});\r",
+              "// Why? Error must clearly state WHICH field is missing\r",
+              "// Generic \"bad request\" is not helpful\r",
+              "\r",
+              "// Verify statusCode in body matches actual HTTP status\r",
+              "pm.test(\"StatusCode in body matches HTTP status\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.statusCode).to.eql(pm.response.code);\r",
+              "});\r",
+              "// Why? Some APIs have statusCode in body that doesn't match header\r",
+              "// e.g. HTTP 200 but body says statusCode: 400 - this is a bug\r",
+              "\r",
+              "// Store error structure for comparison with other endpoints\r",
+              "pm.collectionVariables.set(\"loginErrorStructure\", JSON.stringify(Object.keys(pm.response.json())));\r",
+              "console.log(\"Login error fields:\", Object.keys(pm.response.json()));\r",
+              "\r",
+              "// Log the bug details for reporting\r",
+              "if (pm.response.code !== 400) {\r",
+              "    console.error(\"🐛 BUG FOUND:\");\r",
+              "    console.error(\"Expected status: 400\");\r",
+              "    console.error(\"Actual status:\", pm.response.code);\r",
+              "    console.error(\"Response body:\", JSON.stringify(pm.response.json(), null, 2));\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"test@example.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Missing Password Error",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"test@example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"success\": false,\r\n    \"reason\": \"password missing\"\r\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create User Invalid Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Verify correct error status code for invalid data format\r",
+              "pm.test(\"Status code is 422 - Unprocessable Entity\", function () {\r",
+              "    pm.response.to.have.status(422);\r",
+              "});\r",
+              "// Why 422 not 400? \r",
+              "// 400 = missing/wrong parameters\r",
+              "// 422 = parameters exist but validation failed\r",
+              "\r",
+              "// Verify error response has standard fields\r",
+              "pm.test(\"Error response has standard fields\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property(\"error\");\r",
+              "    pm.expect(jsonData).to.have.property(\"message\");\r",
+              "    pm.expect(jsonData).to.have.property(\"statusCode\");\r",
+              "});\r",
+              "\r",
+              "// Verify error message mentions email\r",
+              "pm.test(\"Error message mentions email\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.message.toLowerCase()).to.include(\"email\");\r",
+              "});\r",
+              "\r",
+              "// Verify statusCode in body matches HTTP status\r",
+              "pm.test(\"StatusCode in body matches HTTP status\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.statusCode).to.eql(pm.response.code);\r",
+              "});\r",
+              "\r",
+              "// Store error structure for comparison\r",
+              "pm.collectionVariables.set(\"userErrorStructure\", JSON.stringify(Object.keys(pm.response.json())));\r",
+              "console.log(\"User error fields:\", Object.keys(pm.response.json()));\r",
+              "\r",
+              "// Compare error structures between endpoints\r",
+              "const loginErrorFields = JSON.parse(pm.collectionVariables.get(\"loginErrorStructure\") || \"[]\");\r",
+              "const userErrorFields = Object.keys(pm.response.json());\r",
+              "\r",
+              "pm.test(\"Error structure is consistent between endpoints\", function () {\r",
+              "    pm.expect(userErrorFields.sort()).to.eql(loginErrorFields.sort());\r",
+              "});\r",
+              "// Why? If login returns {error, message} but users returns {errorMessage, details}\r",
+              "// Frontend must handle two different structures - inconsistent API design bug"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Test User\",\r\n    \"email\": \"not-an-email\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Invalid Email Error",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Test User\",\r\n    \"email\": \"not-an-email\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "status": "Unprocessable Content",
+          "code": 422,
+          "_postman_previewlanguage": "",
+          "header": [],
+          "cookie": [
+            {
+              "expires": "Invalid Date",
+              "domain": "",
+              "path": ""
+            }
+          ],
+          "body": "{\r\n    \"error\": \"Unprocessable Entity\",\r\n    \"message\": \"Email format is invalid\",\r\n    \"statusCode\": 422,\r\n    \"field\": \"email\"\r\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "loginErrorStructure",
+      "value": ""
+    },
+    {
+      "key": "userErrorStructure",
+      "value": ""
+    }
+  ]
+}
